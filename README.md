@@ -1,0 +1,76 @@
+# SAGE - Sequential Agent Goal Execution Protocol
+
+SAGE is an AI protocol that dynamically manages multi-LLM workflows by breaking down user prompts into validated, goal-driven sub-tasks processed by the most suitable language models.
+
+## Core Components
+
+- **Decomposer Agent**: Breaks main prompt into meaningful sub-prompts
+- **Router Agent**: Selects the best model for each sub-task
+- **Execution Manager**: Runs sub-prompts sequentially with context
+- **Evaluator**: Checks if responses match expected goals within threshold
+- **Retry/Reassign Handler**: Manages failed tasks
+- **Aggregator**: Combines outputs into final response
+
+## Project Structure
+
+```
+sage/
+├── src/
+│   ├── sage/
+│   │   ├── agents/
+│   │   │   ├── decomposer.py
+│   │   │   ├── router.py
+│   │   │   ├── executor.py
+│   │   │   ├── evaluator.py
+│   │   │   └── aggregator.py
+│   │   ├── core/
+│   │   │   ├── models.py
+│   │   │   ├── config.py
+│   │   │   └── utils.py
+│   │   └── __init__.py
+│   └── tests/
+├── config/
+│   └── settings.yaml
+├── requirements.txt
+└── setup.py
+```
+
+## Installation
+
+```bash
+pip install -e .
+```
+
+## Usage
+
+```python
+from sage import SAGE
+
+# Initialize the protocol
+sage = SAGE()
+
+# Process a user prompt
+result = sage.process_prompt("Your prompt here")
+```
+
+## Development
+
+1. Create a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+2. Install development dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Run tests:
+```bash
+pytest
+```
+
+## License
+
+MIT License

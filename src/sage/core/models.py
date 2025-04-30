@@ -1,0 +1,51 @@
+from enum import Enum
+from typing import List, Optional, Dict, Any
+from pydantic import BaseModel, Field
+
+class TaskType(str, Enum):
+    CREATIVE = "creative"
+    TECHNICAL = "technical"
+    SUMMARIZATION = "summarization"
+    ANALYSIS = "analysis"
+    CODE = "code"
+    OTHER = "other"
+
+class SubPrompt(BaseModel):
+    id: str
+    content: str
+    task_type: TaskType
+    expected_goal: str
+    context: Optional[Dict[str, Any]] = None
+    dependencies: List[str] = Field(default_factory=list)
+
+class ModelAssignment(BaseModel):
+    model_name: str
+    model_provider: str
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+
+class ExecutionResult(BaseModel):
+    subprompt_id: str
+    content: str
+    model_used: ModelAssignment
+    success: bool
+    similarity_score: float
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+class EvaluationResult(BaseModel):
+    subprompt_id: str
+    success: bool
+    similarity_score: float
+    feedback: Optional[str] = None
+    retry_count: int = 0
+
+class AggregatedResponse(BaseModel):
+    final_response: str
+    execution_results: List[ExecutionResult]
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+class SAGEConfig(BaseModel):
+    similarity_threshold: float = 0.9
+    max_retries: int = 3
+    default_model: str = "gpt-4"
+    available_models: List[str] = Field(default_factory=lambda: ["gpt-4", "claude-2", "gpt-3.5-turbo"])
+    model_assignments: Dict[TaskType, str] = Field(default_factory=dict) 

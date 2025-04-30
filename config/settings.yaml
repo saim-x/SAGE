@@ -1,0 +1,44 @@
+# SAGE Protocol Configuration
+
+# General Settings
+similarity_threshold: 0.9
+max_retries: 3
+default_model: "gpt-4"
+
+# Available Models
+available_models:
+  - "gpt-4"
+  - "claude-2"
+  - "gpt-3.5-turbo"
+
+# Model Assignments by Task Type
+model_assignments:
+  creative: "gpt-4"
+  technical: "claude-2"
+  summarization: "gpt-3.5-turbo"
+  analysis: "gpt-4"
+  code: "claude-2"
+  other: "gpt-4"
+
+# Model Parameters
+model_parameters:
+  gpt-4:
+    temperature: 0.7
+    max_tokens: 2000
+  claude-2:
+    temperature: 0.7
+    max_tokens: 4000
+  gpt-3.5-turbo:
+    temperature: 0.7
+    max_tokens: 2000
+
+# Retry Strategy
+retry_strategy:
+  max_attempts: 3
+  backoff_factor: 2
+  initial_delay: 1
+
+# Logging
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s" 
