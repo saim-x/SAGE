@@ -53,6 +53,13 @@ sage = SAGE()
 result = sage.process_prompt("Your prompt here")
 ```
 
+## Supported Models (Early Version)
+
+- gemma3:4b (Ollama local)
+- deepseek-r1:1.5b (Ollama local)
+
+> **Note:** Only local LLMs running via Ollama are supported in this early version. Support for cloud LLMs (e.g., GPT, Claude) will be added in the future.
+
 ## Development
 
 1. Create a virtual environment:

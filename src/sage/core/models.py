@@ -44,8 +44,12 @@ class AggregatedResponse(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 class SAGEConfig(BaseModel):
+    """
+    Configuration for SAGE protocol. Only local Ollama models are supported in this version.
+    """
     similarity_threshold: float = 0.9
     max_retries: int = 3
-    default_model: str = "gpt-4"
-    available_models: List[str] = Field(default_factory=lambda: ["gpt-4", "claude-2", "gpt-3.5-turbo"])
-    model_assignments: Dict[TaskType, str] = Field(default_factory=dict) 
+    default_model: str = "gemma3:4b"
+    available_models: List[str] = Field(default_factory=lambda: ["gemma3:4b", "deepseek-r1:1.5b"])
+    model_assignments: Dict[TaskType, str] = Field(default_factory=dict)
+    model_parameters: Dict[str, dict] = Field(default_factory=dict) 

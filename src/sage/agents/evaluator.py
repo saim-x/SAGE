@@ -9,12 +9,12 @@ from ..core.models import SubPrompt, ExecutionResult, EvaluationResult
 class Evaluator(BaseAgent):
     """Agent responsible for evaluating execution results against expected goals."""
     
-    def process(self, result: ExecutionResult) -> EvaluationResult:
+    def process(self, result: ExecutionResult, subprompt: SubPrompt) -> EvaluationResult:
         """Evaluate an execution result against its expected goal.
         
         Args:
             result: The execution result to evaluate
-            
+            subprompt: The original SubPrompt object
         Returns:
             EvaluationResult containing the evaluation outcome
         """
@@ -33,7 +33,7 @@ class Evaluator(BaseAgent):
         # Calculate similarity between result and expected goal
         similarity_score = self._calculate_similarity(
             result.content,
-            result.subprompt.expected_goal
+            subprompt.expected_goal
         )
         
         success = similarity_score >= self.config.similarity_threshold
@@ -53,9 +53,9 @@ class Evaluator(BaseAgent):
         
         return evaluation
     
-    def evaluate(self, result: ExecutionResult) -> EvaluationResult:
+    def evaluate(self, result: ExecutionResult, subprompt: SubPrompt) -> EvaluationResult:
         """Alias for process method to maintain consistent interface."""
-        return self.process(result)
+        return self.process(result, subprompt)
     
     def _calculate_similarity(self, text1: str, text2: str) -> float:
         """Calculate similarity between two texts using TF-IDF and cosine similarity."""

@@ -1,0 +1,82 @@
+protocol:
+  name: SAGE
+  full_name: Sequential Agent Goal Execution Protocol
+  version: 0.1.0
+  description: |
+    SAGE is a modular protocol for dynamically managing multi-LLM workflows. It decomposes user prompts into validated, goal-driven sub-tasks, routes them to the best local language models (via Ollama), and ensures each step meets a success threshold before proceeding. The protocol is designed for extensibility, reliability, and transparency in complex AI task orchestration.
+
+components:
+  - name: DecomposerAgent
+    description: Breaks down the main user prompt into logical, meaningful sub-prompts (sub-tasks).
+    input: User prompt (string), optional context (dict)
+    output: List of SubPrompt objects
+  - name: RouterAgent
+    description: Selects the best local LLM/model (Ollama) for each sub-prompt based on task type and configuration, using a meta-router LLM.
+    input: SubPrompt object
+    output: ModelAssignment object
+  - name: ExecutionManager
+    description: Executes sub-prompts sequentially using the assigned local Ollama model, maintaining context.
+    input: SubPrompt object, ModelAssignment object
+    output: ExecutionResult object
+  - name: Evaluator
+    description: Evaluates the output of each sub-prompt against its expected goal using similarity metrics.
+    input: ExecutionResult object
+    output: EvaluationResult object
+  - name: Retry/Reassign Handler
+    description: Handles retries or reassignments if a sub-task does not meet the success threshold.
+    input: SubPrompt object, EvaluationResult object
+    output: ModelAssignment object (new or adjusted)
+  - name: Aggregator
+    description: Aggregates all sub-task results into a final, coherent response for the user.
+    input: List of ExecutionResult objects
+    output: AggregatedResponse object
+
+workflow:
+  steps:
+    - Receive user prompt
+    - Decompose prompt into sub-prompts
+    - Assign each sub-prompt to the best local model (Ollama)
+    - Execute sub-prompts sequentially, chaining context
+    - After each execution:
+        - Evaluate output against expected goal
+        - If similarity >= threshold, proceed
+        - Else, retry or reassign
+    - Aggregate all results into a final response
+    - Return final response to user
+
+configuration:
+  file: config/settings.yaml
+  parameters:
+    similarity_threshold: float (default: 0.9)
+    max_retries: int (default: 3)
+    default_model: string (e.g., 'gemma3:4b')
+    available_models: list of strings (e.g., ['gemma3:4b', 'deepseek-r1:1.5b'])
+    model_assignments: mapping of task type to model
+    model_parameters: per-model parameter settings
+    retry_strategy: max_attempts, backoff_factor, initial_delay
+    logging: level, format
+
+models:
+  - SubPrompt
+  - ModelAssignment
+  - ExecutionResult
+  - EvaluationResult
+  - AggregatedResponse
+  - SAGEConfig
+
+extensibility:
+  - Add new agent types (e.g., for planning, validation, or post-processing)
+  - Integrate additional LLM providers (cloud or local)
+  - Customize decomposition, routing, or evaluation logic
+  - Plug in custom similarity metrics or feedback mechanisms
+
+usage:
+  - Initialize SAGE with configuration
+  - Call process_prompt(prompt) to process a user prompt
+  - Receive AggregatedResponse with final result and details
+
+supported_models:
+  - gemma3:4b (Ollama local)
+  - deepseek-r1:1.5b (Ollama local)
+
+license: MIT 

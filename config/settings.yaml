@@ -3,32 +3,28 @@
 # General Settings
 similarity_threshold: 0.9
 max_retries: 3
-default_model: "gpt-4"
+default_model: "gemma3:4b"
 
-# Available Models
+# Available Models (Ollama local only)
 available_models:
-  - "gpt-4"
-  - "claude-2"
-  - "gpt-3.5-turbo"
+  - "gemma3:4b"
+  - "deepseek-r1:1.5b"
 
 # Model Assignments by Task Type
 model_assignments:
-  creative: "gpt-4"
-  technical: "claude-2"
-  summarization: "gpt-3.5-turbo"
-  analysis: "gpt-4"
-  code: "claude-2"
-  other: "gpt-4"
+  creative: "gemma3:4b"
+  technical: "deepseek-r1:1.5b"
+  summarization: "gemma3:4b"
+  analysis: "deepseek-r1:1.5b"
+  code: "deepseek-r1:1.5b"
+  other: "gemma3:4b"
 
 # Model Parameters
 model_parameters:
-  gpt-4:
+  gemma3:4b:
     temperature: 0.7
     max_tokens: 2000
-  claude-2:
-    temperature: 0.7
-    max_tokens: 4000
-  gpt-3.5-turbo:
+  deepseek-r1:1.5b:
     temperature: 0.7
     max_tokens: 2000
 
