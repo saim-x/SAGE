@@ -57,6 +57,7 @@ result = sage.process_prompt("Your prompt here")
 
 - gemma3:4b (Ollama local)
 - deepseek-r1:1.5b (Ollama local)
+- qwen3:1.7b (Ollama local)
 
 > **Note:** Only local LLMs running via Ollama are supported in this early version. Support for cloud LLMs (e.g., GPT, Claude) will be added in the future.
 
@@ -81,3 +82,28 @@ pytest
 ## License
 
 MIT License
+
+## Supported Local Models
+
+- `gemma3:4b`
+- `deepseek-r1:1.5b`
+- `qwen3:1.7b`
+
+To use these models, ensure they are installed in your local Ollama instance:
+
+```sh
+ollama pull gemma3:4b
+deepeek-r1:1.5b
+ollama pull qwen3:1.7b
+```
+
+### Configuration
+
+Edit `config/settings.yaml` to set available models. Example:
+
+```yaml
+available_models:
+  - "gemma3:4b"
+  - "deepseek-r1:1.5b"
+  - "qwen3:1.7b"
+```

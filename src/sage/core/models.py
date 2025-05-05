@@ -50,6 +50,6 @@ class SAGEConfig(BaseModel):
     similarity_threshold: float = 0.9
     max_retries: int = 3
     default_model: str = "gemma3:4b"
-    available_models: List[str] = Field(default_factory=lambda: ["gemma3:4b", "deepseek-r1:1.5b"])
+    available_models: List[str] = Field(default_factory=lambda: ["gemma3:4b", "deepseek-r1:1.5b", "qwen3:1.7b"])
     model_assignments: Dict[TaskType, str] = Field(default_factory=dict)
     model_parameters: Dict[str, dict] = Field(default_factory=dict) 

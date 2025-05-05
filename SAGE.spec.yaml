@@ -78,5 +78,6 @@ usage:
 supported_models:
   - gemma3:4b (Ollama local)
   - deepseek-r1:1.5b (Ollama local)
+  - qwen3:1.7b (Ollama local)
 
 license: MIT 
