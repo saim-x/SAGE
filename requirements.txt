@@ -6,4 +6,5 @@ anthropic>=0.5.0
 pytest>=7.0.0
 python-dotenv>=1.0.0
 tqdm>=4.65.0
-scikit-learn>=1.0.0  # For similarity metrics 
+scikit-learn>=1.0.0  # For similarity metrics
+rich>=13.0.0 

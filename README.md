@@ -14,25 +14,25 @@ SAGE is an AI protocol that dynamically manages multi-LLM workflows by breaking 
 ## Project Structure
 
 ```
-sage/
-├── src/
-│   ├── sage/
-│   │   ├── agents/
-│   │   │   ├── decomposer.py
-│   │   │   ├── router.py
-│   │   │   ├── executor.py
-│   │   │   ├── evaluator.py
-│   │   │   └── aggregator.py
-│   │   ├── core/
-│   │   │   ├── models.py
-│   │   │   ├── config.py
-│   │   │   └── utils.py
-│   │   └── __init__.py
-│   └── tests/
-├── config/
-│   └── settings.yaml
-├── requirements.txt
-└── setup.py
+src/
+├── sage/
+│   ├── agents/
+│   │   ├── decomposer.py
+│   │   ├── router.py
+│   │   ├── executor.py
+│   │   ├── evaluator.py
+│   │   ├── aggregator.py
+│   │   └── base.py
+│   ├── core/
+│   │   ├── models.py
+│   │   └── utils.py
+│   └── __init__.py
+├── test_sage_protocol.py
+config/
+└── settings.yaml
+requirements.txt
+setup.py
+SAGE.spec.yaml
 ```
 
 ## Installation
