@@ -26,3 +26,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Log files
+sage_protocol.log
+*.log
