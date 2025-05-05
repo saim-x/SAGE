@@ -19,7 +19,7 @@ components:
     input: SubPrompt object, ModelAssignment object
     output: ExecutionResult object
   - name: Evaluator
-    description: Evaluates the output of each sub-prompt against its expected goal using similarity metrics.
+    description: Evaluates the output of each sub-prompt against its expected goal using an LLM-based judgment protocol. The evaluator prompts a selected LLM (default: Deepseek, configurable) to act as an expert judge, returning YES/NO and a confidence score.
     input: ExecutionResult object
     output: EvaluationResult object
   - name: Retry/Reassign Handler
@@ -38,8 +38,8 @@ workflow:
     - Assign each sub-prompt to the best local model (Ollama)
     - Execute sub-prompts sequentially, chaining context
     - After each execution:
-        - Evaluate output against expected goal
-        - If similarity >= threshold, proceed
+        - Evaluate output against expected goal using LLM-based judgment (YES/NO, confidence)
+        - If confidence >= threshold and answer is YES, proceed
         - Else, retry or reassign
     - Aggregate all results into a final response
     - Return final response to user
@@ -55,6 +55,7 @@ configuration:
     model_parameters: per-model parameter settings
     retry_strategy: max_attempts, backoff_factor, initial_delay
     logging: level, format
+    evaluator_model: string (e.g., 'deepseek-r1:1.5b') # Model used for LLM-based evaluation
 
 models:
   - SubPrompt

@@ -1,26 +1,27 @@
 from typing import Dict, Any, Optional
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.feature_extraction.text import TfidfVectorizer
-import numpy as np
-
 from .base import BaseAgent
 from ..core.models import SubPrompt, ExecutionResult, EvaluationResult
+from ..core.utils import call_ollama
+
+LLM_EVAL_PROMPT = """
+You are an expert evaluator. Given a sub-task and a model's answer, determine if the answer correctly and sufficiently fulfills the sub-task. 
+
+Sub-task:
+{subtask}
+
+Model's answer:
+{answer}
+
+Respond with 'YES' if the answer is correct and sufficient, 'NO' otherwise. Optionally, provide a confidence score (0-1) and a brief explanation, e.g.:
+YES (0.95): The answer is correct and complete.
+NO (0.2): The answer is missing key details.
+"""
 
 class Evaluator(BaseAgent):
-    """Agent responsible for evaluating execution results against expected goals."""
+    """Agent responsible for evaluating execution results against expected goals using LLM-based evaluation."""
     
     def process(self, result: ExecutionResult, subprompt: SubPrompt) -> EvaluationResult:
-        """Evaluate an execution result against its expected goal.
-        
-        Args:
-            result: The execution result to evaluate
-            subprompt: The original SubPrompt object
-        Returns:
-            EvaluationResult containing the evaluation outcome
-        """
-        self._log_info("Evaluating execution result",
-                      subprompt_id=result.subprompt_id)
-        
+        self._log_info("Evaluating execution result (LLM)", subprompt_id=result.subprompt_id)
         if not result.success:
             return EvaluationResult(
                 subprompt_id=result.subprompt_id,
@@ -29,55 +30,42 @@ class Evaluator(BaseAgent):
                 feedback="Execution failed",
                 retry_count=0
             )
-        
-        # Calculate similarity between result and expected goal
-        similarity_score = self._calculate_similarity(
-            result.content,
-            subprompt.expected_goal
-        )
-        
-        success = similarity_score >= self.config.similarity_threshold
-        
-        evaluation = EvaluationResult(
+        # Select evaluation model dynamically
+        eval_model = getattr(self.config, 'evaluator_model', None) or self.config.model_assignments.get('evaluation', 'deepseek-r1:1.5b')
+        prompt = LLM_EVAL_PROMPT.format(subtask=subprompt.content, answer=result.content)
+        try:
+            llm_response = call_ollama(prompt, model=eval_model)
+            # Parse LLM response
+            llm_response_lower = llm_response.lower()
+            if 'yes' in llm_response_lower:
+                success = True
+            elif 'no' in llm_response_lower:
+                success = False
+            else:
+                success = False
+            # Extract confidence if present
+            import re
+            conf_match = re.search(r'([01](?:\.\d+)?)', llm_response)
+            similarity_score = float(conf_match.group(1)) if conf_match else (1.0 if success else 0.0)
+            feedback = llm_response.strip()
+        except Exception as e:
+            self._log_error("LLM evaluation failed, falling back to similarity", error=e)
+            # Fallback: always fail
+            return EvaluationResult(
+                subprompt_id=result.subprompt_id,
+                success=False,
+                similarity_score=0.0,
+                feedback=f"LLM evaluation failed: {e}",
+                retry_count=0
+            )
+        self._log_info("Completed evaluation (LLM)", subprompt_id=result.subprompt_id, success=success, similarity_score=similarity_score)
+        return EvaluationResult(
             subprompt_id=result.subprompt_id,
             success=success,
             similarity_score=similarity_score,
-            feedback=self._generate_feedback(success, similarity_score),
+            feedback=feedback,
             retry_count=0
         )
-        
-        self._log_info("Completed evaluation",
-                      subprompt_id=result.subprompt_id,
-                      success=success,
-                      similarity_score=similarity_score)
-        
-        return evaluation
     
     def evaluate(self, result: ExecutionResult, subprompt: SubPrompt) -> EvaluationResult:
-        """Alias for process method to maintain consistent interface."""
-        return self.process(result, subprompt)
-    
-    def _calculate_similarity(self, text1: str, text2: str) -> float:
-        """Calculate similarity between two texts using TF-IDF and cosine similarity."""
-        vectorizer = TfidfVectorizer()
-        try:
-            # Create TF-IDF vectors
-            tfidf_matrix = vectorizer.fit_transform([text1, text2])
-            
-            # Calculate cosine similarity
-            similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
-            
-            return float(similarity)
-        except Exception as e:
-            self._log_error("Failed to calculate similarity",
-                          error=e,
-                          text1=text1[:100],  # Log first 100 chars
-                          text2=text2[:100])
-            return 0.0
-    
-    def _generate_feedback(self, success: bool, similarity_score: float) -> str:
-        """Generate feedback based on evaluation results."""
-        if success:
-            return f"Response meets quality threshold (similarity: {similarity_score:.2f})"
-        else:
-            return f"Response does not meet quality threshold (similarity: {similarity_score:.2f})" 
+        return self.process(result, subprompt) 

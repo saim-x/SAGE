@@ -5,6 +5,8 @@ similarity_threshold: 0.9
 max_retries: 3
 default_model: "gemma3:4b"
 
+evaluator_model: "deepseek-r1:1.5b"  # Model used for LLM-based evaluation
+
 # Available Models (Ollama local only)
 available_models:
   - "gemma3:4b"
@@ -19,6 +21,7 @@ model_assignments:
   analysis: "deepseek-r1:1.5b"
   code: "deepseek-r1:1.5b"
   other: "gemma3:4b"
+  evaluation: "deepseek-r1:1.5b"  # Default evaluator model
 
 # Model Parameters
 model_parameters:

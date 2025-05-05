@@ -7,7 +7,7 @@ SAGE is an AI protocol that dynamically manages multi-LLM workflows by breaking 
 - **Decomposer Agent**: Breaks main prompt into meaningful sub-prompts
 - **Router Agent**: Selects the best model for each sub-task
 - **Execution Manager**: Runs sub-prompts sequentially with context
-- **Evaluator**: Checks if responses match expected goals within threshold
+- **Evaluator**: Uses an LLM-based approach to judge if each sub-task's response fulfills the sub-task, by prompting a selected LLM (default: Deepseek) to act as an expert evaluator. The evaluator model is configurable and can be changed in the config.
 - **Retry/Reassign Handler**: Manages failed tasks
 - **Aggregator**: Combines outputs into final response
 
