@@ -21,7 +21,6 @@ model_assignments:
   analysis: "deepseek-r1:1.5b"
   code: "deepseek-r1:1.5b"
   other: "gemma3:4b"
-  evaluation: "deepseek-r1:1.5b"  # Default evaluator model
 
 # Model Parameters
 model_parameters:

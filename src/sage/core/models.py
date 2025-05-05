@@ -22,6 +22,7 @@ class ModelAssignment(BaseModel):
     model_name: str
     model_provider: str
     parameters: Dict[str, Any] = Field(default_factory=dict)
+    model_config = {'protected_namespaces': ()}
 
 class ExecutionResult(BaseModel):
     subprompt_id: str
@@ -30,6 +31,7 @@ class ExecutionResult(BaseModel):
     success: bool
     similarity_score: float
     metadata: Dict[str, Any] = Field(default_factory=dict)
+    model_config = {'protected_namespaces': ()}
 
 class EvaluationResult(BaseModel):
     subprompt_id: str
@@ -53,4 +55,5 @@ class SAGEConfig(BaseModel):
     available_models: List[str] = Field(default_factory=lambda: ["gemma3:4b", "deepseek-r1:1.5b", "qwen3:1.7b"])
     model_assignments: Dict[TaskType, str] = Field(default_factory=dict)
     model_parameters: Dict[str, dict] = Field(default_factory=dict)
-    evaluator_model: Optional[str] = None 
+    evaluator_model: Optional[str] = None
+    model_config = {'protected_namespaces': ()} 

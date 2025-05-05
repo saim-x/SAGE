@@ -35,6 +35,21 @@ class DecomposerAgent(BaseAgent):
             elif "summary" in step_lower or "persuasive" in step_lower:
                 task_type = TaskType.CREATIVE
                 expected_goal = "Write a persuasive summary for city officials"
+            elif "identify" in step_lower:
+                task_type = TaskType.ANALYSIS
+                expected_goal = "Identification of main ethical and operational challenges."
+            elif "suggest" in step_lower:
+                task_type = TaskType.TECHNICAL
+                expected_goal = "Suggest a technical architecture, including data sources, model types, and privacy safeguards."
+            elif "draft" in step_lower or "plan" in step_lower:
+                task_type = TaskType.CREATIVE
+                expected_goal = "Draft a communication plan to explain the system to patients and staff, addressing concerns and highlighting benefits."
+            elif "explain" in step_lower:
+                task_type = TaskType.CREATIVE
+                expected_goal = "Provide a clear explanation as requested."
+            elif "list" in step_lower:
+                task_type = TaskType.OTHER
+                expected_goal = "List the required items or points."
             else:
                 task_type = TaskType.OTHER
                 expected_goal = "Complete the sub-task"
