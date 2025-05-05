@@ -37,17 +37,26 @@ class Evaluator(BaseAgent):
             llm_response = call_ollama(prompt, model=eval_model)
             # Parse LLM response
             llm_response_lower = llm_response.lower()
+            import re
+            conf_match = re.search(r'([01](?:\.\d+)?)', llm_response)
+            similarity_score = float(conf_match.group(1)) if conf_match else 0.0
+            feedback = llm_response.strip()
+            threshold = getattr(self.config, 'similarity_threshold', 0.9)
             if 'yes' in llm_response_lower:
                 success = True
             elif 'no' in llm_response_lower:
                 success = False
+            elif conf_match:
+                # If confidence is high, treat as success
+                if similarity_score >= threshold:
+                    self._log_warning("LLM response ambiguous but confidence high, treating as success", subprompt_id=result.subprompt_id, confidence=similarity_score)
+                    success = True
+                else:
+                    self._log_warning("LLM response ambiguous and confidence low, treating as failure", subprompt_id=result.subprompt_id, confidence=similarity_score)
+                    success = False
             else:
+                self._log_warning("LLM response ambiguous and no confidence found, treating as failure", subprompt_id=result.subprompt_id)
                 success = False
-            # Extract confidence if present
-            import re
-            conf_match = re.search(r'([01](?:\.\d+)?)', llm_response)
-            similarity_score = float(conf_match.group(1)) if conf_match else (1.0 if success else 0.0)
-            feedback = llm_response.strip()
         except Exception as e:
             self._log_error("LLM evaluation failed, falling back to similarity", error=e)
             # Fallback: always fail
