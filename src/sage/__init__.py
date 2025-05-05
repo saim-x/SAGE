@@ -130,10 +130,17 @@ class SAGE:
                 print(f"[INFO] SubPrompt {idx+1} | Attempt {retry_count+1} | Model: {model_name} | Similarity: {evaluation.similarity_score:.2f} | Success: {evaluation.success}")
                 print(f"[INFO] Model Output: {result.content[:200]}{'...' if len(result.content) > 200 else ''}")
                 logger.info(f"[SubPrompt {subprompt.id}] Attempt {retry_count+1} - Model: {model_name} - Similarity: {evaluation.similarity_score:.2f} - Success: {evaluation.success}")
-            # Select the best attempt (highest similarity)
-            best_result, best_eval = max(attempts, key=lambda x: x[1].similarity_score)
-            previous_output = best_result.content  # For next subprompt
-            if not best_eval.success:
+            # Find all successful attempts
+            successful_attempts = [a for a in attempts if a[1].success]
+            if successful_attempts:
+                # Pick the best successful attempt
+                best_result, best_eval = max(successful_attempts, key=lambda x: x[1].similarity_score)
+                previous_output = best_result.content
+                # No warning/error needed
+            else:
+                # No successful attempts, pick the best overall
+                best_result, best_eval = max(attempts, key=lambda x: x[1].similarity_score)
+                previous_output = best_result.content
                 print(f"[WARN] SubPrompt {idx+1} did not meet the similarity threshold. Returning best attempt.")
                 logger.error(f"[SubPrompt {subprompt.id}] All attempts below threshold. Returning best attempt with similarity {best_eval.similarity_score:.2f}")
             execution_results.append(best_result)
