@@ -11,29 +11,6 @@ SAGE is an AI protocol that dynamically manages multi-LLM workflows by breaking 
 - **Retry/Reassign Handler**: Manages failed tasks
 - **Aggregator**: Combines outputs into final response
 
-## Project Structure
-
-```
-src/
-├── sage/
-│   ├── agents/
-│   │   ├── decomposer.py
-│   │   ├── router.py
-│   │   ├── executor.py
-│   │   ├── evaluator.py
-│   │   ├── aggregator.py
-│   │   └── base.py
-│   ├── core/
-│   │   ├── models.py
-│   │   └── utils.py
-│   └── __init__.py
-├── test_sage_protocol.py
-config/
-└── settings.yaml
-requirements.txt
-setup.py
-SAGE.spec.yaml
-```
 
 ## Installation
 
@@ -107,3 +84,53 @@ available_models:
   - "deepseek-r1:1.5b"
   - "qwen3:1.7b"
 ```
+
+## Project Directory Overview
+
+- `src/` — Main source code for the protocol and CLI
+- `src/sage/` — Core protocol package
+- `src/sage/agents/` — All agent classes (decomposer, router, executor, evaluator, aggregator, base)
+- `src/sage/core/` — Core models and utilities
+- `src/test_sage_protocol.py` — CLI runner and test entry point
+- `config/` — Configuration files (e.g., `settings.yaml`)
+- `requirements.txt` — Python dependencies
+- `setup.py` — Package setup
+- `SAGE.spec.yaml` — Protocol specification (see below)
+- `sage_protocol.log` — Log file for all runs (debugging/audit)
+- `README.md` — This documentation
+
+## Command Line Usage
+
+Run the protocol with the default test prompt:
+
+```bash
+python src/test_sage_protocol.py
+```
+
+Run with a custom prompt:
+
+```bash
+python src/test_sage_protocol.py --prompt "Your custom prompt here"
+```
+
+Show detailed output for each sub-prompt:
+
+```bash
+python src/test_sage_protocol.py --verbose
+```
+
+## Log File
+
+All protocol runs are logged to `sage_protocol.log` in the project root. This file contains detailed step-by-step logs for debugging and audit trails.
+
+## Extensibility
+
+SAGE is designed to be modular and extensible. You can:
+- Add new agent types (e.g., for planning, validation, or post-processing) in `src/sage/agents/`
+- Integrate additional LLM providers or models
+- Customize decomposition, routing, or evaluation logic
+- Plug in custom similarity metrics or feedback mechanisms
+
+## Protocol Specification
+
+The protocol is formally described in `SAGE.spec.yaml`. This file documents all components, workflow steps, configuration options, and extensibility points. Use it as a reference for implementation or extension.
