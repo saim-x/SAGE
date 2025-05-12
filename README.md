@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/banner.png" alt="SAGE Banner" width="100%">
+</p>
+
 # SAGE - Sequential Agent Goal Execution Protocol
 
 SAGE is an AI protocol that dynamically manages multi-LLM workflows by breaking down user prompts into validated, goal-driven sub-tasks processed by the most suitable language models.
