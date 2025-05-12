@@ -11,6 +11,8 @@ SAGE is an AI protocol that dynamically manages multi-LLM workflows by breaking 
 - **Retry/Reassign Handler**: Manages failed tasks
 - **Aggregator**: Combines outputs into final response
 
+## Flowchart of Execution
+![SAGE Protocol Flowchart](docs/assets/sage_flowchart.png)
 
 ## Installation
 
