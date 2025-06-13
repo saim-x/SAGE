@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/banner.png" alt="SAGE Banner" width="100%">
+</p>
+
 # SAGE - Sequential Agent Goal Execution Protocol
 
 SAGE is an AI protocol that dynamically manages multi-LLM workflows by breaking down user prompts into validated, goal-driven sub-tasks processed by the most suitable language models.
@@ -12,7 +16,42 @@ SAGE is an AI protocol that dynamically manages multi-LLM workflows by breaking 
 - **Aggregator**: Combines outputs into final response
 
 ## Flowchart of Execution
-![SAGE Protocol Flowchart](docs/assets/sage_flowchart.png)
+
+```mermaid
+flowchart TB
+    UserInput(["User Prompt Input"]) --> Decomposer["DecomposerAgent (Breaks down user prompt into sub-prompts)"]
+    Decomposer --> SubPromptList["List of Sub-Prompts"]
+    SubPromptList --> SubPromptLoop["Process Next Sub-Prompt"]
+    
+    subgraph "For Each Sub-Prompt (Sequential Processing)"
+        SubPromptLoop --> Router["RouterAgent (Selects best model for sub-prompt)"]
+        Router --> RouterDecision{"Meta-router Success?"}
+        RouterDecision -->|Yes| Executor["ExecutionManager (Executes sub-prompt using assigned model)"]
+        RouterDecision -->|No| Fallback["Use fallback model from config"]
+        Fallback --> Executor
+        
+        Executor --> Evaluator["Evaluator (Evaluates if result meets expected goal)"]
+        Evaluator --> EvalDecision{"Evaluation Successful?"}
+        
+        EvalDecision -->|Yes| StoreResult["Store successful result"]
+        EvalDecision -->|No| RetryCheck{"Retry count < max_retries?"}
+        
+        RetryCheck -->|Yes| SelectNewModel["Select new model (not previously tried)"]
+        SelectNewModel --> Executor
+        
+        RetryCheck -->|No| StoreBestAttempt["Store best attempt (highest similarity score)"]
+        
+        StoreResult --> MoreSubPrompts{"More sub-prompts?"}
+        StoreBestAttempt --> MoreSubPrompts
+        
+        MoreSubPrompts -->|Yes| SubPromptLoop
+    end
+    
+    MoreSubPrompts -->|No| Aggregator["Aggregator (Combines all sub-prompt results)"]
+    Aggregator --> FinalResponse(["Return Final Response and Metadata"])
+```
+
+</details>
 
 ## Installation
 
