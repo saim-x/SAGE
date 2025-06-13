@@ -231,3 +231,56 @@ If LLM-based evaluation is unavailable (e.g., Ollama is not running), SAGE will 
 - `sentence-transformers>=2.2.2`
 
 You can tune the similarity threshold in your config (`similarity_threshold`).
+
+## Additional Features
+
+### Interactive Model Provider Selection
+SAGE supports interactive selection between local (Ollama) and cloud (Gemini) LLM providers at runtime. When running the CLI, you will be prompted to choose your provider type, and the protocol will dynamically filter available models and assignments based on your choice. This ensures only compatible models are used for your selected environment.
+
+### Dynamic Configuration Filtering
+The CLI runner dynamically filters the configuration (models, assignments, parameters) based on your provider selection, ensuring that only relevant models and settings are used for each run.
+
+### Detailed Logging System
+SAGE features a detailed logging system. All protocol runs are logged to `sage_protocol.log` in the project root. Each agent (decomposer, router, executor, evaluator, aggregator) logs its actions, warnings, and errors, providing a comprehensive audit trail for debugging and transparency.
+
+### Model Parameter Adjustment on Retry
+When a sub-task fails and is retried with a new model, SAGE may automatically adjust model parameters (such as increasing temperature or max tokens) to improve the chances of success. This adaptive retry logic is handled by the router agent.
+
+### SubPrompt Dependencies and Context Chaining
+Each sub-task (SubPrompt) tracks dependencies on previous sub-tasks, and the output of one sub-task is passed as context to the next. This enables sequential reasoning and context-aware execution across the workflow.
+
+### Extensibility for New Providers
+SAGE is designed to be extensible for new LLM providers. While the current implementation supports Ollama (local) and Gemini (cloud), the codebase is structured to allow easy integration of additional providers in the future. (Note: Only Ollama and Gemini are currently implemented.)
+
+## Configuration
+
+Edit `config/settings.yaml` to set available models. Example:
+
+```yaml
+available_models:
+  - "gemma3:4b"
+  - "deepseek-r1:1.5b"
+  - "qwen3:1.7b"
+```
+
+The following configuration options are supported in `config/settings.yaml`:
+
+- `similarity_threshold`: (float) Similarity threshold for evaluation (default: 0.9)
+- `max_retries`: (int) Maximum number of retries for failed sub-tasks (default: 3)
+- `default_model`: (string) Default model to use if routing fails
+- `available_models`: (list) List of available model names
+- `model_assignments`: (dict) Mapping of task types to model names
+- `model_parameters`: (dict) Per-model parameter settings
+- `evaluator_model`: (string) Model used for LLM-based evaluation
+- `model_provider_map`: (dict) Mapping of model names to provider types (local/cloud)
+- `logging`: (dict) Logging configuration (level, format)
+
+> **Note:** The `retry_strategy` options for backoff and delay are not currently implemented and have been removed from the configuration. Only `max_retries` is used for retry logic.
+
+## Extensibility
+
+SAGE is designed to be modular and extensible. You can:
+- Add new agent types (e.g., for planning, validation, or post-processing) in `src/sage/agents/`
+- Integrate additional LLM providers or models (currently, only Ollama and Gemini are implemented)
+- Customize decomposition, routing, or evaluation logic
+- Plug in custom similarity metrics or feedback mechanisms

@@ -38,12 +38,6 @@ model_parameters:
     temperature: 0.7
     max_tokens: 4096
 
-# Retry Strategy
-retry_strategy:
-  max_attempts: 3
-  backoff_factor: 2
-  initial_delay: 1
-
 # Logging
 logging:
   level: "INFO"
