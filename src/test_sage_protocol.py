@@ -10,6 +10,9 @@ from rich.live import Live
 from rich.align import Align
 import time
 import random
+import yaml
+from pathlib import Path
+from sage.core.models import SAGEConfig, TaskType
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the SAGE protocol on a prompt.")
@@ -48,11 +51,77 @@ if __name__ == "__main__":
             live.update(Align.center(f"[green]Initializing{'.' * (i % 4)}", vertical="middle"))
             time.sleep(0.2)
 
+    # --- NEW: Ask user for Local/Cloud choice ---
+    console.rule("[bold blue]Select LLM Provider Type[/bold blue]")
+    provider_panel = Panel(
+        "[bold]Choose LLM Provider Type:[/bold]\n"
+        "[bold green]1.[/bold green] Local (Ollama)\n"
+        "[bold cyan]2.[/bold cyan] Cloud (Gemini, etc.)",
+        title="[bold]LLM Mode Selection[/bold]",
+        style="magenta"
+    )
+    console.print(provider_panel, justify="center")
+    provider_type = None
+    while provider_type not in ("1", "2"):
+        provider_type = console.input("[bold yellow]Enter [green]1[/green] for Local or [cyan]2[/cyan] for Cloud:[/bold yellow] ").strip()
+    provider_type_str = "local" if provider_type == "1" else "cloud"
+    console.print(f"[bold]You selected:[/bold] [green]{'Local (Ollama)' if provider_type == '1' else 'Cloud (Gemini, etc.)'}[/green]", justify="center")
+
+    # --- Load and filter config ---
+    config_path = Path(__file__).parent.parent / "config" / "settings.yaml"
+    with open(config_path, "r") as f:
+        config_dict = yaml.safe_load(f)
+    model_provider_map = config_dict.get("model_provider_map", {})
+    # Filter available_models
+    filtered_models = [m for m in config_dict["available_models"] if model_provider_map.get(m, "local") == provider_type_str]
+    # Filter model_assignments
+    filtered_assignments = {}
+    for k in ["creative", "technical", "summarization", "analysis", "code", "other"]:
+        v = config_dict["model_assignments"].get(k)
+        if v in filtered_models:
+            filtered_assignments[k] = v
+        elif filtered_models:
+            filtered_assignments[k] = filtered_models[0]
+    # Filter model_parameters
+    filtered_parameters = {k: v for k, v in config_dict["model_parameters"].items() if k in filtered_models}
+    # Filter evaluator_model if needed
+    filtered_evaluator_model = config_dict.get("evaluator_model")
+    if filtered_evaluator_model not in filtered_models:
+        filtered_evaluator_model = None
+    # Build filtered config
+    filtered_config = dict(config_dict)
+    filtered_config["available_models"] = filtered_models
+    filtered_config["model_assignments"] = filtered_assignments
+    filtered_config["model_parameters"] = filtered_parameters
+    filtered_config["evaluator_model"] = filtered_evaluator_model
+    # Only keep relevant model_provider_map
+    filtered_config["model_provider_map"] = {k: v for k, v in model_provider_map.items() if k in filtered_models}
+    # Log and display config
+    config_table = Table(title="Filtered Model Configuration", box=box.SIMPLE)
+    config_table.add_column("Model Name", style="bold")
+    config_table.add_column("Provider Type", style="cyan")
+    for m in filtered_models:
+        config_table.add_row(m, model_provider_map.get(m, "local"))
+    console.print(config_table)
+    console.print(f"[bold yellow]Filtered config will be used for this run.[/bold yellow]", justify="center")
+    # Log the choice
+    import logging
+    logger = logging.getLogger("SAGEProtocol")
+    logger.info(f"User selected provider type: {provider_type_str}")
+    logger.info(f"Filtered models: {filtered_models}")
+    # Set default_model to a valid model
+    filtered_default_model = config_dict.get("default_model")
+    if filtered_default_model not in filtered_models and filtered_models:
+        filtered_default_model = filtered_models[0]
+    filtered_config["default_model"] = filtered_default_model
+    # Build SAGEConfig object
+    sage_config = SAGEConfig(**filtered_config)
+
     console.print("[bold bright_cyan]Press [bold]Enter[/bold] to continue[/bold bright_cyan]", justify="center")
     input()
 
-    # Initialize SAGE protocol
-    sage = SAGE()
+    # Initialize SAGE protocol with filtered config
+    sage = SAGE(config_obj=sage_config)
 
     # Prompt
     prompt = args.prompt or (

@@ -23,10 +23,25 @@ class RouterAgent(BaseAgent):
     """Agent responsible for routing tasks to appropriate models using a meta-router LLM."""
     
     def process(self, subprompt: SubPrompt) -> ModelAssignment:
-        """Process a subprompt and determine the best model to handle it using the meta-router LLM."""
+        """Process a subprompt and determine the best model to handle it using the meta-router LLM or direct assignment if only cloud models are available."""
         self._log_info("Routing subprompt (meta-router)", subprompt_id=subprompt.id, task_type=subprompt.task_type)
-        
         available_models = self.config.available_models
+        provider_map = getattr(self.config, 'model_provider_map', {})
+        # If all available models are cloud, skip meta-router
+        only_cloud = all(provider_map.get(m, 'local') == 'cloud' for m in available_models)
+        if only_cloud:
+            # Assign by task type if present, else first available
+            model_name = self.config.model_assignments.get(subprompt.task_type)
+            if model_name not in available_models and available_models:
+                model_name = available_models[0]
+            model_params = self.config.model_parameters.get(model_name, {})
+            assignment = ModelAssignment(
+                model_name=model_name,
+                model_provider=self._get_provider(model_name),
+                parameters=model_params
+            )
+            self._log_info("Assigned model directly in cloud-only mode", subprompt_id=subprompt.id, model_name=model_name, parameters=model_params)
+            return assignment
         prompt = META_ROUTER_PROMPT_TEMPLATE.format(
             subtask=subprompt.content,
             model_list="\n- ".join([""].__add__(available_models))
@@ -39,8 +54,15 @@ class RouterAgent(BaseAgent):
                 model_name = extract_model_name_from_response(response, available_models)
         except Exception as e:
             self._log_error("Meta-router LLM failed, falling back to config assignment", error=e)
-            # Fallback: use config assignment
-            model_name = self.config.model_assignments.get(subprompt.task_type, self.config.default_model)
+            # Fallback: use config assignment, but only if it's in available_models
+            fallback_model = None
+            if subprompt.task_type in self.config.model_assignments and self.config.model_assignments[subprompt.task_type] in available_models:
+                fallback_model = self.config.model_assignments[subprompt.task_type]
+            elif available_models:
+                fallback_model = available_models[0]
+            else:
+                fallback_model = None
+            model_name = fallback_model
         
         model_params = self.config.model_parameters.get(model_name, {})
         assignment = ModelAssignment(
@@ -97,6 +119,8 @@ class RouterAgent(BaseAgent):
             return "openai"
         elif "claude" in model_name:
             return "anthropic"
+        elif "gemini" in model_name:
+            return "gemini"
         else:
             return "unknown"
     

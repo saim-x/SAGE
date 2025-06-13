@@ -27,6 +27,9 @@ wheels/
 .installed.cfg
 *.egg
 
+# Virtual environment
+venv/
+
 # Log files
 sage_protocol.log
 *.log

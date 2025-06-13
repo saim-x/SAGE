@@ -32,13 +32,24 @@ sage = SAGE()
 result = sage.process_prompt("Your prompt here")
 ```
 
-## Supported Models (Early Version)
+## Supported Models
 
 - gemma3:4b (Ollama local)
 - deepseek-r1:1.5b (Ollama local)
 - qwen3:1.7b (Ollama local)
+- gemini-2.5-flash (Gemini, cloud)
 
-> **Note:** Only local LLMs running via Ollama are supported in this early version. Support for cloud LLMs (e.g., GPT, Claude) will be added in the future.
+> **Note:** You can now use Gemini (cloud) as an LLM provider. See below for setup instructions.
+
+### Using Gemini (Cloud LLM)
+
+To use Gemini as a cloud LLM provider, you must add your Gemini API key to a `.env` file in the project root:
+
+```
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+The protocol will automatically detect and use Gemini for any sub-task assigned to a Gemini model (e.g., `gemini-2.5-flash`).
 
 ## Development
 
@@ -53,14 +64,50 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-3. Run tests:
+3. Run the protocol for testing or demonstration:
 ```bash
-pytest
+python src/test_sage_protocol.py
 ```
+You can also provide a custom prompt:
+```bash
+python src/test_sage_protocol.py --prompt "Your custom prompt here"
+```
+Or show detailed output for each sub-prompt:
+```bash
+python src/test_sage_protocol.py --verbose
+```
+
+> **Note:** There are currently no traditional pytest-based tests in this project. All protocol testing and demonstration is performed via the CLI script above.
 
 ## License
 
 MIT License
+
+## Contributing
+
+SAGE is completely open source and we welcome contributions from the community!
+
+**How to contribute:**
+1. **Fork** this repository to your own GitHub account.
+2. **Clone** your fork to your local machine.
+3. **Create a new branch** for your feature or bugfix:
+   ```bash
+   git checkout -b my-feature
+   ```
+4. **Make your changes** and commit them with clear messages.
+5. **Push** your branch to your fork:
+   ```bash
+   git push origin my-feature
+   ```
+6. **Open a Pull Request** on GitHub, describing your changes and why they should be merged.
+
+**Guidelines:**
+- Please open an issue if you want to discuss a bug or feature before submitting code.
+- Try to follow the existing code style and structure.
+- If possible, test your changes before submitting.
+- Be respectful and constructive in all interactions.
+
+We appreciate all kinds of contributions—bug reports, feature requests, documentation improvements, and code!
 
 ## Supported Local Models
 
@@ -136,3 +183,12 @@ SAGE is designed to be modular and extensible. You can:
 ## Protocol Specification
 
 The protocol is formally described in `SAGE.spec.yaml`. This file documents all components, workflow steps, configuration options, and extensibility points. Use it as a reference for implementation or extension.
+
+## Semantic Similarity Fallback (Evaluator)
+
+If LLM-based evaluation is unavailable (e.g., Ollama is not running), SAGE will automatically use semantic similarity (cosine similarity of sentence embeddings) between the model's answer and the subprompt content to determine success/failure. This requires the `sentence-transformers` package. If it is not installed, SAGE will fallback to string similarity.
+
+**Dependency:**
+- `sentence-transformers>=2.2.2`
+
+You can tune the similarity threshold in your config (`similarity_threshold`).

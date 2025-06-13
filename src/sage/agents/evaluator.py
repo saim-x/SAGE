@@ -2,6 +2,8 @@ from typing import Dict, Any, Optional
 from .base import BaseAgent
 from ..core.models import SubPrompt, ExecutionResult, EvaluationResult
 from ..core.utils import call_ollama
+import difflib
+from sentence_transformers import SentenceTransformer, util
 
 LLM_EVAL_PROMPT = """
 You are an expert evaluator. Given a sub-task and a model's answer, determine if the answer correctly and sufficiently fulfills the sub-task. 
@@ -58,13 +60,28 @@ class Evaluator(BaseAgent):
                 self._log_warning("LLM response ambiguous and no confidence found, treating as failure", subprompt_id=result.subprompt_id)
                 success = False
         except Exception as e:
-            self._log_error("LLM evaluation failed, falling back to similarity", error=e)
-            # Fallback: always fail
+            self._log_error("LLM evaluation using Ollama failed, falling back to semantic similarity", error=e)
+            # Fallback: use semantic similarity between result.content and subprompt.content
+            answer = result.content or ""
+            question = subprompt.content or ""
+            similarity_score = 0.0
+            threshold = getattr(self.config, 'similarity_threshold', 0.9)
+            feedback = ""
+            try:
+                model = SentenceTransformer('all-MiniLM-L6-v2')
+                emb_answer = model.encode(answer, convert_to_tensor=True)
+                emb_question = model.encode(question, convert_to_tensor=True)
+                similarity_score = float(util.pytorch_cos_sim(emb_answer, emb_question).item())
+                feedback = f"Semantic similarity score: {similarity_score:.2f} (threshold: {threshold})"
+            except Exception as embed_e:
+                similarity_score = difflib.SequenceMatcher(None, answer, question).ratio() if answer and question else 0.0
+                feedback = f"Fallback string similarity score: {similarity_score:.2f} (threshold: {threshold}) (embedding error: {embed_e})"
+            success = similarity_score >= threshold
             return EvaluationResult(
                 subprompt_id=result.subprompt_id,
-                success=False,
-                similarity_score=0.0,
-                feedback=f"LLM evaluation failed: {e}",
+                success=success,
+                similarity_score=similarity_score,
+                feedback=feedback,
                 retry_count=0
             )
         self._log_info("Completed evaluation (LLM)", subprompt_id=result.subprompt_id, success=success, similarity_score=similarity_score)

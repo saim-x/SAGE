@@ -56,4 +56,5 @@ class SAGEConfig(BaseModel):
     model_assignments: Dict[TaskType, str] = Field(default_factory=dict)
     model_parameters: Dict[str, dict] = Field(default_factory=dict)
     evaluator_model: Optional[str] = None
+    model_provider_map: Dict[str, str] = Field(default_factory=dict)
     model_config = {'protected_namespaces': ()} 

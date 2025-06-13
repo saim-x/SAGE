@@ -21,13 +21,17 @@ if not logger.hasHandlers():
     logger.addHandler(file_handler)
 
 class SAGE:
-    def __init__(self, config_path: Optional[str] = None):
+    def __init__(self, config_path: Optional[str] = None, config_obj: Optional[SAGEConfig] = None):
         """Initialize the SAGE protocol.
         
         Args:
             config_path: Path to the configuration file. If None, uses default settings.
+            config_obj: SAGEConfig object (overrides config_path if provided)
         """
-        self.config = self._load_config(config_path)
+        if config_obj is not None:
+            self.config = config_obj
+        else:
+            self.config = self._load_config(config_path)
         self.decomposer = DecomposerAgent(self.config)
         self.router = RouterAgent(self.config)
         self.executor = ExecutionManager(self.config)
@@ -72,19 +76,20 @@ class SAGE:
             try:
                 assignment = self.router.route(subprompt)
                 if assignment.model_name not in self.config.available_models:
-                    print(f"[WARN] Meta-router failed, assigning 'gemma3:4b' to SubPrompt {i+1}")
+                    fallback_model = self.config.available_models[0] if self.config.available_models else None
+                    print(f"[WARN] Meta-router failed, assigning '{fallback_model}' to SubPrompt {i+1}")
                     assignment = assignment.copy(update={
-                        'model_name': 'gemma3:4b',
-                        'model_provider': self.router._get_provider('gemma3:4b'),
-                        'parameters': self.config.model_parameters.get('gemma3:4b', {})
+                        'model_name': fallback_model,
+                        'model_provider': self.router._get_provider(fallback_model),
+                        'parameters': self.config.model_parameters.get(fallback_model, {})
                     })
             except Exception as e:
-                print(f"[WARN] Meta-router exception: {e}. Assigning 'gemma3:4b' to SubPrompt {i+1}")
-                assignment = self.router.route(subprompt)
+                fallback_model = self.config.available_models[0] if self.config.available_models else None
+                print(f"[WARN] Meta-router exception: {e}. Assigning '{fallback_model}' to SubPrompt {i+1}")
                 assignment = assignment.copy(update={
-                    'model_name': 'gemma3:4b',
-                    'model_provider': self.router._get_provider('gemma3:4b'),
-                    'parameters': self.config.model_parameters.get('gemma3:4b', {})
+                    'model_name': fallback_model,
+                    'model_provider': self.router._get_provider(fallback_model),
+                    'parameters': self.config.model_parameters.get(fallback_model, {})
                 })
             print(f"[INFO] Assigned model: {assignment.model_name}")
             assignments.append(assignment)
