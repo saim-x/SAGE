@@ -1,3 +1,5 @@
+# Note: This file is not required for normal installation or usage.
+
 from setuptools import setup, find_packages
 
 setup(

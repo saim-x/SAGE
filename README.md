@@ -53,24 +53,25 @@ flowchart TB
 
 </details>
 
-## Installation
+## Quick Start
 
-```bash
-pip install -e .
-```
+1. **Clone or download this repository:**
+   ```bash
+   git clone <repo-url>
+   cd SAGE
+   ```
+   Or download the ZIP from GitHub and extract it, then open a terminal in the extracted folder.
 
-## Usage
+2. **Install all requirements:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-```python
-from sage import SAGE
-
-# Initialize the protocol
-sage = SAGE()
-
-# Process a user prompt
-result = sage.process_prompt("Your prompt here")
-```
-
+3. **Run the protocol:**
+   ```bash
+   python src/test_sage_protocol.py
+   ```
+   
 ## Supported Models
 
 - gemma3:4b (Ollama local)
@@ -284,3 +285,15 @@ SAGE is designed to be modular and extensible. You can:
 - Integrate additional LLM providers or models (currently, only Ollama and Gemini are implemented)
 - Customize decomposition, routing, or evaluation logic
 - Plug in custom similarity metrics or feedback mechanisms
+
+## Advanced Usage (Python API)
+
+If you want to use SAGE as a Python library in your own scripts, you can do so after installing requirements:
+
+```python
+from sage import SAGE
+sage = SAGE()
+result = sage.process_prompt("Your prompt here")
+```
+
+> **Note:** This is for advanced users. For most use cases, the CLI runner is recommended.
