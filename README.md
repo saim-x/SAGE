@@ -57,7 +57,7 @@ flowchart TB
 
 1. **Clone or download this repository:**
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/saim-x/SAGE
    cd SAGE
    ```
    Or download the ZIP from GitHub and extract it, then open a terminal in the extracted folder.
